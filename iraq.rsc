@@ -1,5 +1,5 @@
 # -------------------------------------------------------
-# Free IP2Location Firewall List by Country -com teste para git
+# Free IP2Location Firewall List by Country -com teste para gitver se vai para o branch staging
 # Source: https://www.ip2location.com/free/visitor-blocker
 # Last Generated: 09 Jun 2022 00:32:27 GMT
 # [Important] Please update this list every month
