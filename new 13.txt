@@ -1,0 +1,44 @@
+function Repair-DockerHostDns {
+    <#
+    .SYNOPSIS
+        Adds host IP/FQDN to docker containers in order to work around Docker
+        Desktop issue https://github.com/docker/for-win/issues/3810
+
+    .PARAMETER Filter
+        Optionally filter running containers by name.
+
+    .PARAMETER IpAddress
+        IP V4 address of local machine, tries to determine automatically if not
+        specified.
+        
+    .NOTES
+        Credit to https://github.com/dpmott for the initial solution using docker exec to update /etc/hosts
+    #>
+
+    [CmdletBinding()]
+
+    param(
+        [string] $Filter = '',
+
+        [Alias('Ip')]
+        [string] $IpAddress
+    )
+
+    if (!$IPAddress) {
+        $IPAddress = Resolve-DnsName -Name $env:COMPUTERNAME -Type A `
+            | Select-Object -First 1 -Expand IPAddress
+
+        Write-Verbose "Auto-detected IP: $IPAddress"
+    }
+
+    $HostName = [System.Net.Dns]::GetHostByName(($env:computerName)) `
+        | Select-Object -expand HostName
+
+    docker ps --format '{{ .Names }}' `
+        | Where-Object { $_ -match $Filter } `
+        | ForEach-Object {
+            Write-Verbose "Adding host address $IPAddress for container $_"
+            docker exec -u 0:0 $_ /bin/sh -c "echo '$IPAddress`t$HostName' >> /etc/hosts"
+            $_
+        }
+}
